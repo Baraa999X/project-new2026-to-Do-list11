@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخطط المهام اليومية</title>
+    <!-- ربط ملف الـ CSS الخارجي -->
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- 1️⃣ البانر العلوي الفخم الجديد -->
+    <div class="header-banner">
+        <h1>قائمتي للمهام اليومية 📝</h1>
+        <p>أنجز أكثر، بخطوات ثابتة 🚀</p>
+    </div>
+
+    <div class="container" style="max-width: 600px;">
+        <div class="card shadow-sm p-4">
+            
+            <div class="d-flex gap-2 mb-3">
+                <input type="text" id="taskInput" class="form-control rounded" placeholder="اكتب مهمة جديدة هنا...">
+                <button class="btn btn-primary text-nowrap rounded" type="button" id="addBtn">إضافة مهمة</button>
+            </div>
+
+            <ul class="list-group" id="tasksList">
+                <!-- المهام تظهر هنا برمجياً -->
+            </ul>
+        </div>
+    </div>
+    <script>
+       const apiUrl = "https://project-new2026-to-do-list11.onrender.com/api/Tasks"; 
+
+const taskInput = document.getElementById('taskInput');
+const addBtn = document.getElementById('addBtn');
+const tasksList = document.getElementById('tasksList');
+
+async function getTasks() {
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error("فشل الاتصال بالسيرفر");
+        const tasks = await response.json();
+        
+        tasksList.innerHTML = "";
+        tasks.forEach(task => {
+            const li = document.createElement('li');
+            li.className = "list-group-item d-flex justify-content-between align-items-center rounded mb-2 border";
+            
+            const textClass = task.isCompleted ? "completed-task" : "";
+            const isChecked = task.isCompleted ? "checked" : "";
+
+            li.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <input type="checkbox" class="form-check-input" ${isChecked} onclick="toggleTask(${task.id})">
+                    <span class="${textClass}">${task.title}</span>
+                </div>
+                <button class="btn btn-danger btn-sm rounded" onclick="deleteTask(${task.id})">حذف</button>
+            `;
+            tasksList.appendChild(li);
+        });
+    } catch (error) {
+        console.error("حدث خطأ أثناء جلب البيانات:", error);
+    }
+}
+
+// دالة تحديث الحالة
+async function toggleTask(id) {
+    try {
+        // تأكد من أن المسار في الكنترولر يطابق هذا الهيكل
+        const response = await fetch(`${apiUrl}/${id}/toggle`, {
+            method: 'PUT'
+        });
+        if (response.ok) getTasks();
+    } catch (error) {
+        console.error("خطأ:", error);
+    }
+}
+
+// دالة الإضافة
+addBtn.addEventListener('click', async () => {
+    const taskTitle = taskInput.value.trim();
+    if (taskTitle === "") return;
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: taskTitle })
+        });
+        if (response.ok) {
+            taskInput.value = "";
+            getTasks();
+        }
+    } catch (error) {
+        console.error("خطأ:", error);
+    }
+});
+
+// دالة الحذف
+async function deleteTask(id) {
+    try {
+        await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+        getTasks();
+    } catch (error) {
+        console.error("خطأ:", error);
+    }
+}
+
+getTasks();
+    </script>
+        <!-- 2️⃣ الفوتر بأسفل الصفحة -->
+  <footer>
+    <p>جميع الحقوق محفوظة © 2026 | تم التطوير بواسطة <span style="color: red; font-weight: bold;">Baraa.dev</span></p>
+</footer>
+</body>
+</html>
